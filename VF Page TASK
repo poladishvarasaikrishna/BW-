@@ -1,0 +1,102 @@
+
+//VF PAGE 1:
+<apex:page Controller="UpsTaskController" >
+    <style>
+        div { 
+        font-family: Arial;
+        font-size :15px;
+        display: block;
+        }
+    </style>
+    <apex:form >
+        <div align='center' >
+            
+            <apex:outputText >Enter Your Package Tracking Number: </apex:outputText>
+            <apex:inputText value="{!searchKey}" label="Input" required="true" />
+            <apex:commandButton value="Track Package" action="{!search}"/>
+            
+        </div>
+    </apex:form>
+</apex:page>
+********************************************
+//VF PAGE 2:
+<apex:page controller="UpsTaskController" >
+    <style>
+        div { 
+        font-family: Arial;
+        font-size :15px;
+        display: block;
+        }
+    </style>
+    <apex:form >
+        <div align='center' >
+            
+            <apex:outputText > The URL To Track Your Package is : </apex:outputText>
+            <apex:commandLink action="{!Action}" value="{!value}"  />
+        </div>
+    </apex:form>
+</apex:page>
+**************************************************
+//CUSTOM CONTROLLER FOR BOTH VF PAGES
+public class UpsTaskController {
+    public string value {get;set;}
+    
+    
+    public String searchkey{get;set;}
+    public UpsTaskController( ) {
+        
+    }
+    
+    public PageReference search(){
+        
+        String UPSRegex ='^(1Z)[0-9A-Z]{16}$|^(T)+[0-9A-Z]{10}$|^[0-9]{9}$|^[0-9]{26}$';
+        String FEDRegex ='^[0-9]{20}$|^[0-9]{15}$|^[0-9]{12}$|^[0-9]{22}$';
+        String USPSRegex ='^(94|93|92|94|95)[0-9]{20}$|^(94|93|92|94|95)[0-9]{22}$|^(70|14|23|03)[0-9]{14}$|^(M0|82)[0-9]{8}$|^([A-Z]{2})[0-9]{9}([A-Z]{2})$';
+        
+        Pattern UPSPattern = Pattern.compile(UPSRegex);
+        Pattern FEDPattern = Pattern.compile(FEDRegex);
+        Pattern USPSPattern = Pattern.compile(USPSRegex);
+        
+        Matcher UPSMatcher = UPSPattern.matcher(searchkey);
+        Matcher FEDMatcher = FEDPattern.matcher(searchkey);
+        Matcher USPSMatcher = USPSPattern.matcher(searchkey);
+        if(UPSMatcher.matches() == true ){
+            value = 'https://www.ups.com/track?tracknum='+searchkey;
+            PageReference pageRef = new PageReference('/apex/UpsTaskVFPage2');
+            pageRef.setRedirect(false);
+            return pageRef;
+        }
+        
+        else if(FEDMatcher.matches() == true){
+            value = 'https://www.fedex.com/apps/fedextrack/index.html?tracknumbers='+searchkey;
+            PageReference pageRef2 = new PageReference('/apex/UpsTaskVFPage2');
+            
+            pageRef2.setRedirect(false);
+            return pageRef2;
+            
+        }
+        else if(USPSMatcher.matches() == true){
+            value = 'https://tools.usps.com/go/TrackConfirmAction?tRef=fullpage&tLc=3&text28777=&tLabels='+searchkey;
+            PageReference pageRef2 = new PageReference('/apex/UpsTaskVFPage2');
+            
+            pageRef2.setRedirect(false);
+            return pageRef2;
+            
+        }
+        else{
+            value = 'https://www.dhl.com/en/express/tracking.html?AWB='+searchkey;
+            PageReference pageRef2 = new PageReference('/apex/UpsTaskVFPage2');
+            
+            pageRef2.setRedirect(false);
+            return pageRef2;
+            
+        }
+        
+    }
+    public PageReference Action(){
+        PageReference pageRef1 = new PageReference(value);
+        
+        pageRef1.setRedirect(false);
+        return pageRef1;
+    }
+}
